@@ -1,5 +1,3 @@
-// use kiss3d::scene::SceneNode;
-// use kiss3d::window::Window;
 use anyhow::Result;
 use nalgebra as na;
 use serde::Serialize;
@@ -70,22 +68,6 @@ impl VrDevice {
     pub fn id(&self) -> usize {
         self.id
     }
-
-    pub fn tracked(&self) -> bool {
-        self.tracked
-    }
-
-    pub fn position(&self) -> na::Point3<f32> {
-        self.position
-    }
-
-    pub fn rotation(&self) -> na::UnitQuaternion<f32> {
-        self.rotation
-    }
-
-    pub fn device_class(&self) -> VrDeviceClass {
-        self.class
-    }
 }
 
 pub struct VrDeviceManager {
@@ -126,28 +108,6 @@ impl VrDeviceManager {
             let pose = pose.device_to_absolute_tracking();
             device_entry.update(tracked, pose, class);
         }
-    }
-
-    pub fn display_data(&self) -> String {
-        let mut output = String::new();
-        for (id, device) in &self.devices {
-            if device.tracked {
-                let color = match device.class {
-                    VrDeviceClass::LeftController => "green",
-                    VrDeviceClass::RightController => "blue",
-                    VrDeviceClass::Controller => "yellow",
-                    VrDeviceClass::Tracker => "aqua",
-                    VrDeviceClass::HMD => "purple",
-                    _ => "red",
-                };
-                output.push_str(&format!("{} -> {:?} -> {}\n", id, device.class, color));
-            }
-        }
-        output
-    }
-
-    pub fn devices(&self) -> &HashMap<usize, VrDevice> {
-        &self.devices
     }
 
     pub fn device_list(&self) -> Vec<VrDevice> {

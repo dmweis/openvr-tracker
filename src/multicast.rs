@@ -1,7 +1,6 @@
 use anyhow::Result;
 use socket2::{Domain, Protocol, Socket, Type};
 use std::net::SocketAddrV4;
-
 use std::net::UdpSocket;
 
 fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<UdpSocket> {
@@ -17,13 +16,26 @@ fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<UdpS
     Ok(socket.into_udp_socket())
 }
 
-const DEFAULT_PORT: u16 = 50692;
-const DEFAULT_MULTICAST: [u8; 4] = [239, 255, 42, 98];
-const IP_ALL: [u8; 4] = [0, 0, 0, 0];
+const ALL_INTERFACES: [u8; 4] = [0, 0, 0, 0];
 
-pub fn create_socket() -> Result<(std::net::UdpSocket, SocketAddrV4)> {
-    let addr = SocketAddrV4::new(IP_ALL.into(), DEFAULT_PORT);
-    let multi_addr = SocketAddrV4::new(DEFAULT_MULTICAST.into(), DEFAULT_PORT);
-    let socket = bind_multicast(&addr, &multi_addr)?;
-    Ok((socket, multi_addr))
+pub struct MessageSender {
+    socket: UdpSocket,
+    multicast_address: SocketAddrV4,
+}
+
+impl MessageSender {
+    pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
+        let addr = SocketAddrV4::new(ALL_INTERFACES.into(), multicast_address.port());
+        let socket = bind_multicast(&addr, &multicast_address)?;
+        Ok(Self {
+            socket,
+            multicast_address,
+        })
+    }
+
+    pub fn send(&self, message: &str) -> Result<()> {
+        self.socket
+            .send_to(message.as_bytes(), self.multicast_address)?;
+        Ok(())
+    }
 }
