@@ -4,10 +4,9 @@ use std::net::SocketAddrV4;
 use std::net::UdpSocket;
 
 fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<UdpSocket> {
+    // this code was inspired by https://github.com/henninglive/tokio-udp-multicast-chat
     assert!(multi_addr.ip().is_multicast(), "Address must be multicast");
-
     let socket = Socket::new(Domain::ipv4(), Type::dgram(), Some(Protocol::udp()))?;
-
     socket.set_reuse_address(true)?;
     socket.set_nonblocking(true)?;
     socket.bind(&socket2::SockAddr::from(*addr))?;
