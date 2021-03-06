@@ -1,74 +1,7 @@
+use crate::tracking_messages::*;
 use anyhow::Result;
 use nalgebra as na;
-use serde::Serialize;
 use std::{collections::HashMap, usize};
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Serialize)]
-pub enum VrDeviceClass {
-    Controller,
-    LeftController,
-    RightController,
-    Tracker,
-    HMD,
-    Sensor,
-    Other,
-}
-
-impl VrDeviceClass {
-    fn from_openvr_types(
-        device_class: openvr::TrackedDeviceClass,
-        controller: Option<openvr::TrackedControllerRole>,
-    ) -> Self {
-        match device_class {
-            openvr::TrackedDeviceClass::HMD => VrDeviceClass::HMD,
-            openvr::TrackedDeviceClass::Controller => {
-                if let Some(role) = controller {
-                    match role {
-                        openvr::TrackedControllerRole::LeftHand => VrDeviceClass::LeftController,
-                        openvr::TrackedControllerRole::RightHand => VrDeviceClass::RightController,
-                    }
-                } else {
-                    VrDeviceClass::Controller
-                }
-            }
-            openvr::TrackedDeviceClass::GenericTracker => VrDeviceClass::Tracker,
-            openvr::TrackedDeviceClass::TrackingReference => VrDeviceClass::Sensor,
-            _ => VrDeviceClass::Other,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct VrDevice {
-    id: usize,
-    tracked: bool,
-    position: na::Point3<f32>,
-    rotation: na::UnitQuaternion<f32>,
-    class: VrDeviceClass,
-}
-
-impl VrDevice {
-    fn new(id: usize) -> Self {
-        Self {
-            id,
-            tracked: false,
-            position: na::Point3::new(0., 0., 0.),
-            rotation: na::UnitQuaternion::identity(),
-            class: VrDeviceClass::Other,
-        }
-    }
-
-    fn update(&mut self, tracked: bool, pose: &dyn OpenVRPose, class: VrDeviceClass) {
-        self.tracked = tracked;
-        self.position = pose.to_position();
-        self.rotation = pose.to_rotation();
-        self.class = class;
-    }
-
-    pub fn id(&self) -> usize {
-        self.id
-    }
-}
 
 pub struct VrDeviceManager {
     devices: HashMap<usize, VrDevice>,
@@ -118,7 +51,7 @@ impl VrDeviceManager {
     }
 }
 
-trait OpenVRPose {
+pub trait OpenVRPose {
     fn to_position(&self) -> na::Point3<f32>;
     fn to_rotation(&self) -> na::UnitQuaternion<f32>;
 }

@@ -1,24 +1,12 @@
 mod multicast;
 mod openvr_adaptor;
+mod tracking_messages;
 
 use anyhow::Result;
 use clap::Clap;
-use serde::Serialize;
 use std::net::SocketAddrV4;
 use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
-#[derive(Debug, Serialize)]
-struct TrackedObjects {
-    ts: u128,
-    trackers: Vec<openvr_adaptor::VrDevice>,
-}
-
-impl TrackedObjects {
-    pub fn new(ts: u128, trackers: Vec<openvr_adaptor::VrDevice>) -> Self {
-        Self { ts, trackers }
-    }
-}
 
 #[derive(Clap)]
 #[clap(version = "0.0.1", author = "David M. W. <dweis7@gmail.com>")]
@@ -33,10 +21,15 @@ fn main() -> Result<()> {
     let messenger = multicast::MessageSender::new(args.address)?;
     loop {
         openvr.update();
-        let devices = openvr.device_list();
+        let devices = openvr
+            .device_list()
+            .into_iter()
+            .filter(|object| object.seen())
+            .collect();
         let time = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
-        let objects = TrackedObjects::new(time, devices);
+        let objects = tracking_messages::TrackedObjects::new(time, devices);
         let json = serde_json::to_string(&objects)?;
+        println!("{}", &json);
         messenger.send(&json)?;
         sleep(Duration::from_millis(20));
     }
