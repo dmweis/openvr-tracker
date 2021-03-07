@@ -29,7 +29,6 @@ fn main() -> Result<()> {
         let time = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
         let objects = tracking_messages::TrackedObjects::new(time, devices);
         let json = serde_json::to_string(&objects)?;
-        println!("{}", &json);
         messenger.send(&json)?;
         sleep(Duration::from_millis(20));
     }
