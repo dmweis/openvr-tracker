@@ -32,7 +32,7 @@ impl VrDeviceManager {
                 .devices
                 .entry(index)
                 .or_insert_with(|| VrDevice::new(index));
-            let tracked = self.openvr_system.is_tracked_device_connected(index as u32);
+            let tracked = pose.pose_is_valid();
             let device_class = self.openvr_system.tracked_device_class(index as u32);
             let controller_class = self
                 .openvr_system
