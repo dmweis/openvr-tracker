@@ -63,7 +63,7 @@ impl OpenVRPose for [[f32; 4]; 3] {
         let x = self[0][3];
         let y = self[1][3];
         let z = self[2][3];
-        na::Point3::new(z, x, y)
+        na::Point3::new(x, y, z)
     }
 
     /// Calculated rotation form pose matrix
@@ -82,7 +82,7 @@ impl OpenVRPose for [[f32; 4]; 3] {
         let i = i.copysign(m[2][1] - m[1][2]);
         let j = j.copysign(m[0][2] - m[2][0]);
         let k = k.copysign(m[1][0] - m[0][1]);
-        na::UnitQuaternion::from_quaternion(na::Quaternion::new(w, k, i, j))
+        na::UnitQuaternion::from_quaternion(na::Quaternion::new(w, i, j, k))
     }
 }
 
